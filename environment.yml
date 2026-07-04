@@ -1,0 +1,27 @@
+name: ai_japanese
+channels:
+  - pytorch
+  - nvidia
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.10
+  - pip
+  - ipykernel
+  - numpy
+  - pandas
+  - pip:
+      - torch --index-url https://download.pytorch.org/whl/cu121
+      - torchvision --index-url https://download.pytorch.org/whl/cu121
+      - torchaudio --index-url https://download.pytorch.org/whl/cu121
+      - transformers>=4.45.0
+      - accelerate>=0.34.0
+      - peft>=0.12.0
+      - bitsandbytes>=0.43.0
+      - trl>=0.10.0
+      - datasets
+      - sentencepiece
+      - protobuf
+      - psutil
+      - gpustat
+      - huggingface_hub
