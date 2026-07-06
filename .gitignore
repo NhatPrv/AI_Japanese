@@ -1,0 +1,84 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C++ objects and libraries (for llama.cpp or custom extensions)
+*.elc
+*.so
+*.o
+*.a
+*.lib
+*.dylib
+*.dll
+
+# Distribution / packaging
+bin/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+.conda/
+conda-env/
+
+# Pip install temp and cache directories
+tmp_pip/
+pip_cache/
+.pip_cache/
+
+# IDE configurations
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+.project
+.pydevproject
+
+# Large model files, weights, and checkpoints
+merged_qwen_japanese/
+best_lora_adapter/
+*.gguf
+*.bin
+*.safetensors
+*.pt
+*.pth
+checkpoints/
+checkpoint-*/
+results/
+runs/
+
+# Dataset files (large data and private training data)
+*.jsonl
+*.csv
+*.xlsx
+data/
+dataset/
+train.jsonl
+val.jsonl
+
+# Logs and temporary files
+*.log
+.ipynb_checkpoints/
+.DS_Store
+Thumbs.db
