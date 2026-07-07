@@ -1,3 +1,9 @@
+import sys
+import io
+
+# Ép terminal Windows (PowerShell/CMD) sử dụng bảng mã UTF-8 để in ký tự tiếng Nhật và tiếng Việt có dấu không bị lỗi charmap
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+
 import torch
 import gc
 import time
@@ -15,7 +21,8 @@ def print_vram_status(step_name):
         print(f"[{step_name}] CUDA is not available.")
 
 def run_benchmark():
-    model_id = "Qwen/Qwen2.5-7B-Instruct"
+    # Sẽ tự động trỏ tới thư mục cục bộ của ModelScope từ script download_model.py
+    model_id = r"C:/Users/Lenovo/.cache/modelscope/qwen/Qwen2.5-7B-Instruct"
     print("="*60)
     print(f"VRAM BENCHMARK FOR MODEL: {model_id}")
     print("="*60)
@@ -32,7 +39,7 @@ def run_benchmark():
     )
 
     # 2. Load Tokenizer
-    print("\nLoading Tokenizer from Hugging Face...")
+    print("\nLoading Tokenizer...")
     try:
         tokenizer = AutoTokenizer.from_pretrained(model_id)
         print("Tokenizer loaded successfully.")
@@ -41,8 +48,7 @@ def run_benchmark():
         return
 
     # 3. Load Base Model in 4-bit
-    print(f"\nLoading Base Model '{model_id}' in 4-bit...")
-    print("Note: This will download around 4.5 GB of model shards if run for the first time.")
+    print(f"\nLoading Base Model in 4-bit...")
     start_time = time.time()
     try:
         model = AutoModelForCausalLM.from_pretrained(
@@ -86,7 +92,7 @@ def run_benchmark():
         print("\nSuggestions:")
         print("1. Check if 'bitsandbytes' and 'accelerate' libraries are installed.")
         print("2. Ensure NVIDIA graphics driver is updated.")
-        print("3. Check internet connection to Hugging Face.")
+        print("3. Check internet connection.")
     
     print("="*60)
 
