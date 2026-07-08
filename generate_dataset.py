@@ -1,29 +1,44 @@
 import os
 import sys
+import io
 import json
 import time
 
-# Thử import thư viện Google Generative AI
-try:
-    import google.generativeai as genai
-except ImportError:
-    print("Đang cài đặt thư viện 'google-generativeai'...")
-    import subprocess
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "google-generativeai"])
-    import google.generativeai as genai
+# Ép terminal Windows (PowerShell/CMD) sử dụng bảng mã UTF-8 để in ký tự tiếng Việt/tiếng Nhật không bị lỗi charmap
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
-# 1. Cấu hình API Key
+# Thử import thư viện Google GenAI mới
+try:
+    from google import genai
+    from google.genai import types
+except ImportError:
+    print("Đang cài đặt thư viện mới 'google-genai'...")
+    import subprocess
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "google-genai"])
+    from google import genai
+    from google.genai import types
+
+# 1. Tự động nạp API Key từ file .env nếu tồn tại
+env_path = ".env"
+if os.path.exists(env_path):
+    with open(env_path, "r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if line and not line.startswith("#") and "=" in line:
+                key, val = line.split("=", 1)
+                if key.strip() == "GEMINI_API_KEY":
+                    os.environ["GEMINI_API_KEY"] = val.strip()
+
 api_key = os.environ.get("GEMINI_API_KEY")
 if not api_key:
     print("="*60)
     print("CẢNH BÁO: Chưa tìm thấy biến môi trường GEMINI_API_KEY!")
-    print("Vui lòng thiết lập biến môi trường trước khi chạy:")
-    print("  PowerShell: $env:GEMINI_API_KEY=\"your_api_key_here\"")
-    print("  CMD: set GEMINI_API_KEY=\"your_api_key_here\"")
+    print("Vui lòng thiết lập biến môi trường hoặc cấu hình trong file .env")
     print("="*60)
     sys.exit(1)
 
-genai.configure(api_key=api_key)
+# Khởi tạo client GenAI mới (tự động nhận diện GEMINI_API_KEY từ os.environ)
+client = genai.Client()
 
 # 2. Định nghĩa bộ khung thuật ngữ IT Nhật - Việt
 it_terms = [
@@ -64,13 +79,14 @@ Hãy sinh dữ liệu thô dạng văn bản JSONL thuần túy, KHÔNG đặt t
 """
 
 def generate_batch(prompt_desc, output_file):
-    model = genai.GenerativeModel(
-        model_name="gemini-1.5-flash",
-        system_instruction=SYSTEM_PROMPT
-    )
-    
     try:
-        response = model.generate_content(prompt_desc)
+        response = client.models.generate_content(
+            model='gemini-2.5-flash',
+            contents=prompt_desc,
+            config=types.GenerateContentConfig(
+                system_instruction=SYSTEM_PROMPT
+            )
+        )
         lines = response.text.strip().split('\n')
         
         valid_count = 0
@@ -79,6 +95,9 @@ def generate_batch(prompt_desc, output_file):
                 line = line.strip()
                 if not line:
                     continue
+                # Loại bỏ markdown block nếu AI tự chèn vào
+                if line.startswith("```"):
+                    continue
                 try:
                     # Verify xem line có phải JSON hợp lệ không
                     data = json.loads(line)
@@ -86,7 +105,6 @@ def generate_batch(prompt_desc, output_file):
                         f.write(line + '\n')
                         valid_count += 1
                 except json.JSONDecodeError:
-                    # Bỏ qua các dòng không phải JSON chuẩn
                     continue
         return valid_count
     except Exception as e:
@@ -96,7 +114,7 @@ def generate_batch(prompt_desc, output_file):
 def main():
     output_file = "raw_dataset.jsonl"
     print("="*60)
-    print("BẮT ĐẦU SINH DỮ LIỆU TỰ ĐỘNG QUA GEMINI API")
+    print("BẮT ĐẦU SINH DỮ LIỆU TỰ ĐỘNG QUA GEMINI API (SDK MỚI)")
     print(f"Đầu ra sẽ ghi vào: {output_file}")
     print("="*60)
     

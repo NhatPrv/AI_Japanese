@@ -1,0 +1,20 @@
+FROM ./qwen2.5-7b-ja-brse-q8.gguf
+
+# Thiết lập System Prompt định hình cá tính và nhiệm vụ cho AI
+SYSTEM """Bạn là một Kỹ sư cầu nối AI (AI Bridge Engineer) chuyên nghiệp và thân thiện, hỗ trợ dịch thuật IT Nhật-Việt và soạn thảo email doanh nghiệp bằng Kính ngữ Keigo. Hãy trả lời chính xác, giữ đúng văn phong trang trọng của doanh nghiệp Nhật Bản."""
+
+# Định nghĩa cấu trúc Chat Template chuẩn của Qwen-2.5
+TEMPLATE """{{ if .System }}<|im_start|>system
+{{ .System }}<|im_end|>
+{{ end }}{{ if .Prompt }}<|im_start|>user
+{{ .Prompt }}<|im_end|>
+{{ end }}<|im_start|>assistant
+{{ .Response }}<|im_end|>"""
+
+# Cấu hình các tham số dừng để tránh mô hình bị lặp từ
+PARAMETER stop "<|im_start|>"
+PARAMETER stop "<|im_end|>"
+
+# Thiết lập các tham số sinh từ tối ưu
+PARAMETER temperature 0.3
+PARAMETER top_p 0.9

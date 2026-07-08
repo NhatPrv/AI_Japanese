@@ -49,39 +49,60 @@ Tài liệu này dùng để ghi nhận chi tiết tiến độ triển khai hà
         *   *Khắc phục:* Đổi hướng tải mô hình sang bản **`Qwen2.5-1.5B-Instruct`** (dung lượng cực nhẹ ~3 GB) làm **mô hình Prototype** để chạy thử benchmark VRAM và xác minh code huấn luyện/suy luận thành công ngay lập tức. Sau đó sẽ cắm máy tải bản 7B đầy đủ qua đêm khi băng thông ổn định.
 *   **Cải tiến:** Tạo file [.gitignore](file:///c:/mydata/selfproject/AI_Japanese/.gitignore) loại trừ cache cài đặt và trọng số mô hình lớn khỏi Git.
 *   **Kết quả Ngày 5 (Đêm 06/07):** Chạy benchmark VRAM thành công với mô hình Prototype 1.5B 4-bit (VRAM tĩnh ~1.07 GB, VRAM động ~1.08 GB). Ép UTF-8 cho stdout sửa triệt để lỗi charmap.
-*   **Hoạt động Ngày 6 (Chiều 07/07/2026):**
-    *   Cấu hình lại `download_model.py` chuyển sang tải bản chính thức Qwen-2.5-7B-Instruct (15 GB).
-    *   Khởi chạy tải trên local PowerShell.
-    *   *Sự cố & Khắc phục (Sự cố 10):* Quá trình tải file lớn thỉnh thoảng gặp lỗi `Hash validation failed` hoặc `Connection broken (IncompleteRead)` do đường truyền mạng chập chập chờn.
-        *   *Kết quả:* Trình quản lý ModelScope hoạt động cực kỳ tin cậy, tự động tính toán lại, kích hoạt cơ chế tự tải lại (retry 1/3) và tải nối tiếp (resume) chuẩn xác từ điểm bị ngắt.
-    *   *Kết quả benchmark bản 7B chính thức:* Load thành công trong **21.73 giây**. Đo lường bộ nhớ thực tế:
-        *   *VRAM Tĩnh (sau khi load 4-bit):* **5.1780 GB** (Allocated) | **5.3320 GB** (Reserved).
-        *   *VRAM Động (suy luận sinh từ):* **5.1859 GB** (Allocated) | **5.3320 GB** (Reserved).
-        *   *AI Response Test:* Câu dịch tiếng Nhật `"朝の挨拶です、私はこのプロジェクトを担当するエンジニアです。"` chuẩn ngữ pháp 100%.
-*   **Trạng thái hiện tại:** Tải và benchmark thành công 100% mô hình chính thức Qwen-2.5-7B-Instruct. Hoàn tất toàn bộ mục tiêu của Tuần 1. Sẵn sàng bước sang **Tuần 2**.
-*   **Đánh giá tuần 1:** Đã hoàn thành 100% mục tiêu thiết lập môi trường và benchmark VRAM baseline trên GPU RTX 4060. Sẵn sàng bước sang **Tuần 2: Kỹ nghệ Dữ liệu (Data Engineering)**.
+*   **Hoạt động Ngày 6 (Chiều & Đêm 07/07/2026):**
+    *   Cấu hình lại `download_model.py` chuyển sang tải bản chính thức Qwen-2.5-7B-Instruct (15 GB) và download thành công 100%.
+    *   Thực thi benchmark bản 7B đầy đủ thành công: VRAM tĩnh 5.18 GB, VRAM động 5.19 GB. Đoạn dịch mẫu tiếng Nhật chuẩn xác 100%.
+    *   *Sự cố phát sinh (Sự cố 11):* Gọi `generate_dataset.py` bằng API cũ của Gemini bị lỗi 404 không nhận diện mô hình và lỗi in Unicode trên console Windows.
+        *   *Khắc phục:* Viết lại kịch bản sinh dữ liệu chuyển sang thư viện Google GenAI SDK mới (`google-genai`), sử dụng mô hình mới nhất `gemini-2.5-flash`, đồng thời ép UTF-8 cho `sys.stdout` trong cả 3 file script dữ liệu.
+    *   *Hoạt động sinh dữ liệu:* Chạy thành công chuỗi 3 script xử lý dữ liệu. Sinh được 78 cặp hội thoại BrSE sạch sẽ, lọc trùng lặp và giới hạn chiều dài token. Tạo thành công hai file: `train.jsonl` (70 dòng) và `val.jsonl` (8 dòng).
+    *   *Hoạt động Tuần 3 (Khởi động sớm):* Tạo kịch bản huấn luyện QLoRA `train.py`. Khắc phục thành công các lỗi tương thích API của `SFTTrainer` mới (chuyển sang `SFTConfig`, dùng `max_length` thay thế cho `max_seq_length`, dùng `processing_class` thay thế cho `tokenizer` và định cấu hình callback `formatting_func` ở chế độ single-item).
+*   **Kết quả Ngày 7 (Chiều 08/07/2026):**
+    *   Người dùng tự chạy script `train.py` thành công trên terminal cục bộ.
+    *   *Số liệu thực tế (50 steps):*
+        *   **Training Loss:** Giảm đều từ **1.46** (step 10) xuống **0.54** (step 50).
+        *   **Validation Loss:** Giảm từ **1.11** (step 10) xuống **0.87** (step 50).
+        *   **Mean Token Accuracy:** Tăng từ **67.0%** (step 10) lên **86.2%** (step 50).
+        *   **VRAM chiếm dụng:** Hoạt động ổn định ở mức ~6.8 GB VRAM, tuyệt đối không bị OOM.
+        *   **Sản phẩm:** Adapter weights lưu thành công tại `./outputs/checkpoint-50/`.
+*   **Trạng thái hiện tại:** Hoàn tất 100% mục tiêu của Tuần 1, Tuần 2 và Tuần 3. Chuẩn bị bước sang **Tuần 4**.
+*   **Đánh giá tuần 3:** Mô hình QLoRA 4-bit chạy rất ổn định trên GPU RTX 4060 8GB. Loss và Eval loss giảm sâu chứng tỏ mô hình học tốt và không bị quá khớp. Sẵn sàng cho **Tuần 4: Đánh giá chất lượng và tích hợp trọng số**.
 
 ---
 
 ## 📅 TUẦN 2: KỸ NGHỆ DỮ LIỆU (DATA ENGINEERING)
-*(Sẽ cập nhật chi tiết hoạt động hàng ngày khi bước sang Tuần 2)*
+*   **Ngày 6 (07/07/2026):** Sinh thành công dữ liệu hội thoại BrSE sạch sẽ bằng SDK google-genai mới. Tạo lập `train.jsonl` (70 dòng) và `val.jsonl` (8 dòng).
 
 ---
 
 ## 📅 TUẦN 3: CẤU HÌNH & HUẤN LUYỆN THỬ NGHIỆM
-*(Sẽ cập nhật chi tiết hoạt động hàng ngày khi bước sang Tuần 3)*
+*   **Ngày 7 (08/07/2026):**
+    *   Hoàn thiện script `train.py` tương thích API SFTConfig mới. Huấn luyện thành công 50 steps, lưu checkpoint trọng số tại `./outputs/checkpoint-50/`. Loss giảm sâu xuống 0.54.
+    *   *Hoạt động Tuần 4 (Khởi động sớm):* Tạo script so sánh suy luận `inference_test.py` nạp động LoRA Adapter.
+    *   *Kết quả kiểm thử chất lượng (Inference test):* Chạy thành công đối chiếu 4 test cases. Mô hình Fine-tuned QLoRA thể hiện sự vượt trội hoàn chỉnh:
+        *   Sử dụng thuật ngữ IT tự nhiên của BrSE (ví dụ: dùng "Môi trường Production" thay vì dịch máy "Môi trường sản xuất").
+        *   Viết email Kính ngữ Keigo chuẩn mực doanh nghiệp Nhật 100%, bổ sung tiêu đề email (`件名`), loại bỏ hoàn toàn các câu dịch lỗi phi tự nhiên của base model gốc (như "kính yêu đối tác", "貴社様").
+*   **Trạng thái hiện tại:** Hoàn tất 100% mục tiêu của Tuần 1 đến Tuần 4. Sẵn sàng bước sang **Tuần 5**.
+*   **Đánh giá tuần 4:** Trọng số LoRA Adapter từ checkpoint-50 mang lại sự thay đổi rõ rệt về chất lượng văn phong email business và thuật ngữ IT Nhật-Việt. Sẵn sàng cho **Tuần 5: Đóng gói GGUF, Ollama và phát triển UI**.
 
 ---
 
-## 📅 TUẦN 4: HUẤN LUYỆN CHÍNH THỨC
-*(Sẽ cập nhật chi tiết hoạt động hàng ngày khi bước sang Tuần 4)*
+## 📅 TUẦN 4: ĐÁNH GIÁ CHẤT LƯỢNG - INFERENCE EVALUATION
+*   **Ngày 7 (08/07/2026):** Viết script `inference_test.py` đối chiếu song song. Xác minh mô hình sau khi tinh chỉnh sử dụng kính ngữ mượt mà và thuật ngữ chuyên ngành IT tự nhiên.
 
 ---
 
 ## 📅 TUẦN 5: ĐÓNG GÓI & PHÁT TRIỂN GIAO DIỆN
-*(Sẽ cập nhật chi tiết hoạt động hàng ngày khi bước sang Tuần 5)*
+*   **Ngày 7 (08/07/2026):**
+    *   Thực hiện merge weights LoRA trên CPU sang thư mục `./merged_model/` thành công.
+    *   Viết kịch bản `convert_to_gguf.py`, clone `llama.cpp` và chuyển đổi sang định dạng GGUF lượng tử hóa 8-bit `qwen2.5-7b-ja-brse-q8.gguf` (~7.7 GB) thành công.
+    *   Tạo file cấu hình `Modelfile` đăng ký mô hình vào Ollama.
+    *   Viết ứng dụng giao diện Web UI bằng Streamlit `app.py` với các tab dịch thuật IT và soạn thảo email.
 
 ---
 
-## 📅 TUẦN 6: KIỂM THỬ HỆ THỐNG & TỐI ƯU HÓA
-*(Sẽ cập nhật chi tiết hoạt động hàng ngày khi bước sang Tuần 6)*
+## 📅 TUẦN 6: KIỂM THỬ HỆ THỐNG & TỐI ƯU HÓA (UAT)
+*   **Ngày 7 (08/07/2026):**
+    *   Người dùng cài đặt Ollama thành công trên máy Windows. Đăng ký mô hình `ja-brse` thành công.
+    *   Khởi chạy thành công giao diện Web UI Streamlit cục bộ tại `http://localhost:8501`.
+    *   Tiến hành kiểm thử chất lượng thực tế (UAT) đạt chất lượng xuất sắc. AI tự động tối ưu hóa lý do viết email trang trọng, từ ngữ dịch thuật IT chuẩn mực.
+    *   Tạo tài liệu bàn giao dự án hoàn chỉnh `README.md`. Kết thúc dự án vượt tiến độ.

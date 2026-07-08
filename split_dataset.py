@@ -1,7 +1,11 @@
 import os
 import sys
+import io
 import json
 import random
+
+# Ép terminal Windows sử dụng bảng mã UTF-8
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
 def main():
     input_file = "cleaned_dataset.jsonl"

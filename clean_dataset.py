@@ -1,6 +1,10 @@
 import os
 import sys
+import io
 import json
+
+# Ép terminal Windows (PowerShell/CMD) sử dụng bảng mã UTF-8
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
 try:
     from transformers import AutoTokenizer

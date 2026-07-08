@@ -39,6 +39,8 @@ env/
 ENV/
 .conda/
 conda-env/
+.env
+*.env
 
 # Pip install temp and cache directories
 tmp_pip/
@@ -83,3 +85,8 @@ val.jsonl
 .ipynb_checkpoints/
 .DS_Store
 Thumbs.db
+
+# Week 5 generated artifacts
+merged_model/
+llama.cpp/
+outputs/
